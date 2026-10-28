@@ -1,7 +1,11 @@
+
+import { useState } from 'react'
 import { useProducts } from '../hooks/useProducts'
 import { useProductFilters } from '../hooks/useProductFilters'
 import ProductList from '../components/products/ProductList'
 import LoadingPage from '../components/common/LoadingPage'
+
+type SortOption = 'default' | 'price-asc' | 'price-desc' | 'rating'
 
 const fieldClass =
   'w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition hover:border-slate-300 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100'
@@ -27,7 +31,9 @@ function ProductsError({
           Unable to load products
         </h1>
 
-        <p className="mt-3 text-sm leading-6 text-slate-600">{message}</p>
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          {message}
+        </p>
 
         <button
           type="button"
@@ -50,7 +56,6 @@ export default function ProductsPage() {
     refetch,
   } = useProducts()
 
-  // Call hooks before conditional returns.
   const {
     search,
     setSearch,
@@ -62,6 +67,25 @@ export default function ProductsPage() {
     filteredProducts,
     clearFilters,
   } = useProductFilters(products)
+
+  const [sortBy, setSortBy] = useState<SortOption>('default')
+
+  // Sort a copy so the original filtered array is not mutated.
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortBy) {
+      case 'price-asc':
+        return a.price - b.price
+
+      case 'price-desc':
+        return b.price - a.price
+
+      case 'rating':
+        return b.rating - a.rating
+
+      default:
+        return 0
+    }
+  })
 
   if (isLoading) {
     return <LoadingPage />
@@ -101,10 +125,11 @@ export default function ProductsPage() {
         </header>
 
         <section
-          aria-label="Product filters"
+          aria-label="Product filters and sorting"
           className="sticky top-3 z-10 mb-6 rounded-3xl border border-white bg-white/80 p-4 shadow-xl shadow-slate-200/60 backdrop-blur-md"
         >
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Search */}
             <label className="group relative block">
               <svg
                 className={iconClass}
@@ -120,6 +145,7 @@ export default function ProductsPage() {
                 <circle cx="11" cy="11" r="7" />
                 <path d="m20 20-3.5-3.5" />
               </svg>
+
               <input
                 type="search"
                 value={search}
@@ -130,8 +156,12 @@ export default function ProductsPage() {
               />
             </label>
 
+            {/* Category filter */}
             <label className="group relative block">
-              <span className={iconClass} aria-hidden="true">▦</span>
+              <span className={iconClass} aria-hidden="true">
+                ▦
+              </span>
+
               <select
                 value={category}
                 onChange={(event) => setCategory(event.target.value)}
@@ -148,8 +178,15 @@ export default function ProductsPage() {
               </select>
             </label>
 
+            {/* Maximum price filter */}
             <label className="group relative block">
-              <span className={`${iconClass} font-semibold`} aria-hidden="true">$</span>
+              <span
+                className={`${iconClass} font-semibold`}
+                aria-hidden="true"
+              >
+                $
+              </span>
+
               <input
                 type="number"
                 min="0"
@@ -159,6 +196,27 @@ export default function ProductsPage() {
                 aria-label="Maximum price"
                 className={fieldClass}
               />
+            </label>
+
+            {/* Product sorting */}
+            <label className="group relative block">
+              <span className={iconClass} aria-hidden="true">
+                ↕
+              </span>
+
+              <select
+                value={sortBy}
+                onChange={(event) =>
+                  setSortBy(event.target.value as SortOption)
+                }
+                aria-label="Sort products"
+                className={`${fieldClass} cursor-pointer`}
+              >
+                <option value="default">Default sorting</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="rating">Highest Rated</option>
+              </select>
             </label>
           </div>
 
@@ -180,7 +238,7 @@ export default function ProductsPage() {
           </div>
         </section>
 
-        <ProductList products={filteredProducts} />
+        <ProductList products={sortedProducts} />
       </div>
     </main>
   )
