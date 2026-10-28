@@ -9,6 +9,7 @@ import NotFoundPage from './components/common/NotFoundPage'
 import ProductsPage from './pages/ProductsPage'
 import CartPage from './pages/CartPage'
 import CheckoutPage from './pages/CheckoutPage'
+import ProductDetailsPage from './pages/ProductDetailsPage'
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true)
@@ -27,6 +28,7 @@ export default function App() {
 
       <Routes>
         <Route path="/" element={<ProductsPage />} />
+        <Route path="/products/:id" element={<ProductDetailsPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="*" element={<NotFoundPage />} />
